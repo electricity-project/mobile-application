@@ -1,4 +1,4 @@
-package com.electricity.project.api.entity
+package com.electricity.project.api.aggregated.power.production.entity
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.LocalDateTime

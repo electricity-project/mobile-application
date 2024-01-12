@@ -1,16 +1,15 @@
-package com.electricity.project.api.viewmodel
+package com.electricity.project.api.aggregated.power.production.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.electricity.project.api.entity.AggregatedPowerProductionDTO
-import com.electricity.project.api.entity.PowerStationState
-import com.electricity.project.api.service.AggregatedPowerProductionService
+import com.electricity.project.api.aggregated.power.production.entity.AggregatedPowerProductionDTO
+import com.electricity.project.api.aggregated.power.production.service.AggregatedPowerProductionService
+import com.electricity.project.api.power.station.viewmodel.PowerStationViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 
 

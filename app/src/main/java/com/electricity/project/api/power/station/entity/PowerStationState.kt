@@ -1,4 +1,4 @@
-package com.electricity.project.api.entity
+package com.electricity.project.api.power.station.entity
 
 enum class PowerStationState {
     WORKING,

@@ -1,4 +1,4 @@
-package com.electricity.project
+package com.electricity.project.ui.screens
 
 import android.os.Handler
 import android.os.Looper
@@ -19,7 +19,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -29,12 +28,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.electricity.project.api.ServiceApiBuilder
-import com.electricity.project.api.viewmodel.PowerProductionViewModel
-import com.electricity.project.api.viewmodel.PowerStationViewModel
+import com.electricity.project.api.aggregated.power.production.viewmodel.PowerProductionViewModel
+import com.electricity.project.api.power.station.viewmodel.PowerStationViewModel
 import com.electricity.project.ui.theme.CardBackground
 import com.electricity.project.ui.theme.MobileapplicationTheme
-import java.util.Date
-import kotlin.math.ceil
 
 @Composable
 fun MainView(modifier: Modifier = Modifier) {

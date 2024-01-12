@@ -1,19 +1,14 @@
-package com.electricity.project.api.viewmodel
+package com.electricity.project.api.power.station.viewmodel
 
 import android.util.Log
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.electricity.project.api.entity.PowerStationState
-import com.electricity.project.api.service.PowerStationService
+import com.electricity.project.api.power.station.entity.PowerStationState
+import com.electricity.project.api.power.station.service.PowerStationService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 
 class PowerStationViewModel(
