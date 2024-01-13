@@ -7,9 +7,6 @@ import com.electricity.project.api.power.station.service.PowerStationService
 import com.electricity.project.api.token.AuthAuthenticator
 import com.electricity.project.api.token.AuthorizationInterceptor
 import com.electricity.project.api.token.TokenManager
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,7 +15,6 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 import javax.inject.Singleton
 
 @Module
@@ -58,16 +54,7 @@ class SingletonModule {
 
     @Singleton
     @Provides
-    fun provideRetrofitBuilder(): Retrofit.Builder =
-        Retrofit.Builder()
-            .baseUrl(ServiceApiBuilder.LOGIC_URL)
-            .addConverterFactory(
-                JacksonConverterFactory.create(
-                    ObjectMapper()
-                        .registerKotlinModule()
-                        .registerModule(JavaTimeModule())
-                )
-            )
+    fun provideRetrofitBuilder(): Retrofit.Builder = ApiConst.retrofitBasicBuilder
 
     @Singleton
     @Provides

@@ -1,11 +1,8 @@
 package com.electricity.project.api.token
 
-import com.electricity.project.api.ServiceApiBuilder
+import com.electricity.project.api.ApiConst
 import com.electricity.project.api.authorization.entity.LoginResponseDTO
 import com.electricity.project.api.authorization.service.AuthorizationService
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
@@ -14,8 +11,6 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
 import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 import javax.inject.Inject
 
 class AuthAuthenticator @Inject constructor(
@@ -48,19 +43,9 @@ class AuthAuthenticator @Inject constructor(
         loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
         val okHttpClient = OkHttpClient.Builder().addInterceptor(loggingInterceptor).build()
 
-
-        val retrofit = Retrofit.Builder()
-            .baseUrl(ServiceApiBuilder.LOGIC_URL)
-            .addConverterFactory(
-                JacksonConverterFactory.create(
-                    ObjectMapper()
-                        .registerKotlinModule()
-                        .registerModule(JavaTimeModule())
-                )
-            )
+        val retrofit = ApiConst.retrofitBasicBuilder
             .client(okHttpClient)
             .build()
-
 
         val service = retrofit.create(AuthorizationService::class.java)
         return service.refreshToken("$refreshToken")

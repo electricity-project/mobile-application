@@ -61,6 +61,41 @@ fun MainView(
     powerStationViewModel: PowerStationViewModel,
     tokenViewModel: TokenViewModel
 ) {
+    val localContext = LocalContext.current
+
+    var isLaunched by remember {
+        mutableStateOf(false)
+    }
+
+    LaunchedEffect(isLaunched) {
+        if (!isLaunched) {
+            val handlerThread = HandlerThread("Data-Update")
+            handlerThread.start()
+            val mHandler = Handler(handlerThread.looper)
+
+            val runnable: Runnable = object : Runnable {
+                override fun run() {
+                    if (navController.currentBackStackEntry?.destination?.route.equals(
+                            AppScreen.MainView.route
+                        )
+                    ) {
+                        Toast.makeText(
+                            localContext,
+                            "Odświeżono dane",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        powerProductionViewModel.getAggregatedPowerProduction()
+                        powerStationViewModel.getPowerStationsStatusCount()
+                        mHandler.postDelayed(this, 30000)
+                    }
+                }
+            }
+            mHandler.post(runnable)
+            isLaunched = true
+        }
+    }
+
+
     val jwtToken by tokenViewModel.jwtToken.observeAsState()
 
     val powerProductionLastMinute by powerProductionViewModel.aggregatedPowerProduction.observeAsState(
@@ -103,10 +138,9 @@ fun MainView(
             }
         }
     }
-    RefreshViewData(navController, powerProductionViewModel, powerStationViewModel)
 }
 
-@Composable
+
 private fun getPreferredUsername(jwtToken: JWT?) =
     jwtToken?.getClaim("preferred_username")?.asString()
 
@@ -147,48 +181,6 @@ fun LogoutTopBar(username: String?, tokenViewModel: TokenViewModel) {
             }
         })
 }
-
-@Composable
-private fun RefreshViewData(
-    navController: NavHostController,
-    powerProductionViewModel: PowerProductionViewModel,
-    powerStationViewModel: PowerStationViewModel
-) {
-    val localContext = LocalContext.current
-
-    var isLaunched by remember {
-        mutableStateOf(false)
-    }
-
-    LaunchedEffect(isLaunched) {
-        if (!isLaunched) {
-            val handlerThread = HandlerThread("Data-Update")
-            handlerThread.start()
-            val mHandler = Handler(handlerThread.looper)
-
-            val runnable: Runnable = object : Runnable {
-                override fun run() {
-                    if (navController.currentBackStackEntry?.destination?.route.equals(
-                            AppScreen.MainView.route
-                        )
-                    ) {
-                        Toast.makeText(
-                            localContext,
-                            "Odświeżono dane",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        powerProductionViewModel.getAggregatedPowerProduction()
-                        powerStationViewModel.getPowerStationsStatusCount()
-                        mHandler.postDelayed(this, 30000)
-                    }
-                }
-            }
-            mHandler.post(runnable)
-            isLaunched = true
-        }
-    }
-}
-
 
 @Composable
 fun MainViewCard(topText: String, bottomText: String) {
