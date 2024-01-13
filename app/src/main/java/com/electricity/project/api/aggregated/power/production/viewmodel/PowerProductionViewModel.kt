@@ -1,44 +1,52 @@
 package com.electricity.project.api.aggregated.power.production.viewmodel
 
 import android.util.Log
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.map
 import com.electricity.project.api.aggregated.power.production.entity.AggregatedPowerProductionDTO
 import com.electricity.project.api.aggregated.power.production.service.AggregatedPowerProductionService
-import com.electricity.project.api.power.station.viewmodel.PowerStationViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import java.time.LocalDateTime
+import com.electricity.project.api.base.ApiResponse
+import com.electricity.project.api.base.BaseViewModel
+import com.electricity.project.api.base.CoroutinesErrorHandler
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 
-class PowerProductionViewModel(
+@HiltViewModel
+class PowerProductionViewModel @Inject constructor(
     private val powerProductionService: AggregatedPowerProductionService
-) : ViewModel() {
+) : BaseViewModel() {
 
-    private val _aggregatedPowerProduction = MutableStateFlow(
-        AggregatedPowerProductionDTO(0, 0, LocalDateTime.now())
-    )
-    val aggregatedPowerProduction: StateFlow<AggregatedPowerProductionDTO> = _aggregatedPowerProduction
+    private val _aggregatedPowerProduction =
+        MutableLiveData<ApiResponse<List<AggregatedPowerProductionDTO>>>(ApiResponse.Empty)
 
-    fun getAggregatedPowerProduction() {
-        viewModelScope.launch(context = Dispatchers.IO) {
-            try {
-                val response = powerProductionService.getAggregatedPowerProduction(2, "MINUTE")
-                    .execute()
-                    .body()?.first {
-                        it.powerStations != null && it.aggregatedValue != null
+    val aggregatedPowerProduction: LiveData<AggregatedPowerProductionDTO> =
+        _aggregatedPowerProduction.map {
+            return@map when (it) {
+                is ApiResponse.Success -> {
+                    val production = it.data.filter { powerProduction ->
+                        powerProduction.powerStations != null && powerProduction.aggregatedValue != null
                     }
-                if (response != null) _aggregatedPowerProduction.value = response
-            } catch (e: Exception) {
-                Log.e(
-                    PowerStationViewModel::class.java.toString(),
-                    "getPowerStationsStatusCount: ",
-                    e
-                )
+
+                    if (production.isEmpty()) {
+                        AggregatedPowerProductionDTO()
+                    } else {
+                        production.first()
+                    }
+                }
+
+                else -> AggregatedPowerProductionDTO()
             }
 
         }
+
+    fun getAggregatedPowerProduction() = baseRequest(_aggregatedPowerProduction,
+        object : CoroutinesErrorHandler {
+            override fun onError(message: String) {
+                Log.w(PowerProductionViewModel::class.java.toString(), message)
+            }
+        }) {
+        powerProductionService.getAggregatedPowerProduction(2, "MINUTE")
     }
 }

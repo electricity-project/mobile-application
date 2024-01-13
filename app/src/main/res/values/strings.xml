@@ -1,6 +1,11 @@
 <resources>
     <string name="app_name">mobile-application</string>
     <string name="loginScreen_login">login</string>
-    <string name="loginScreen_password">password</string>
-    <string name="loginScreen_sign_in">SIGN IN</string>
+    <string name="loginScreen_password">hasło</string>
+    <string name="loginScreen_sign_in">Zaloguj się</string>
+    <string name="working_state">aktywnych</string>
+    <string name="stopped_state">zatrzymanych</string>
+    <string name="damaged_state">w naprawie</string>
+    <string name="maintenance_state">uszkodzonych</string>
+    <string name="incorrect_login_data">Niepoprawne dane logowania</string>
 </resources>

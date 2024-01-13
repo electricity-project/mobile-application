@@ -1,7 +1,7 @@
 package com.electricity.project.ui.screens
 
 import android.os.Handler
-import android.os.Looper
+import android.os.HandlerThread
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,112 +15,219 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.electricity.project.api.ServiceApiBuilder
+import androidx.navigation.NavHostController
+import com.auth0.android.jwt.JWT
+import com.electricity.project.R
+import com.electricity.project.api.aggregated.power.production.entity.AggregatedPowerProductionDTO
 import com.electricity.project.api.aggregated.power.production.viewmodel.PowerProductionViewModel
 import com.electricity.project.api.power.station.viewmodel.PowerStationViewModel
-import com.electricity.project.ui.theme.CardBackground
-import com.electricity.project.ui.theme.MobileapplicationTheme
+import com.electricity.project.api.token.Roles
+import com.electricity.project.api.token.TokenViewModel
+import com.electricity.project.ui.theme.LogoBlue
+import com.electricity.project.ui.theme.LogoBlueBackground
+import com.electricity.project.ui.theme.TopBarBackground
 
 @Composable
-fun MainView(modifier: Modifier = Modifier) {
-    val powerProductionViewModel: PowerProductionViewModel =
-        viewModel(factory = ServiceApiBuilder.viewModelFactory)
-    val powerStationViewModel: PowerStationViewModel =
-        viewModel(factory = ServiceApiBuilder.viewModelFactory)
+fun MainView(
+    modifier: Modifier = Modifier,
+    navController: NavHostController,
+    powerProductionViewModel: PowerProductionViewModel,
+    powerStationViewModel: PowerStationViewModel,
+    tokenViewModel: TokenViewModel
+) {
+    val jwtToken by tokenViewModel.jwtToken.observeAsState()
 
-    Surface(
-        modifier = modifier,
-        color = MaterialTheme.colorScheme.background
+    val powerProductionLastMinute by powerProductionViewModel.aggregatedPowerProduction.observeAsState(
+        initial = AggregatedPowerProductionDTO()
+    )
+    val powerStationsStates by powerStationViewModel.powerStationsCount.observeAsState(initial = emptyMap())
+
+    Scaffold(
+        topBar = {
+            LogoutTopBar(getPreferredUsername(jwtToken), tokenViewModel)
+        }
     ) {
-        val powerProductionLastMinute by powerProductionViewModel.aggregatedPowerProduction.collectAsState()
-        val powerStationsStates by powerStationViewModel.powerStationsCount.collectAsState()
-        val shouldStopLoop = false
-        val mHandler = Handler(Looper.getMainLooper())
-                val localContext = LocalContext.current
-
-
-        val runnable: Runnable = object : Runnable {
-            override fun run() {
-                Toast.makeText(localContext, "Odświeżono dane", Toast.LENGTH_LONG).show()
-                powerStationViewModel.getPowerStationsStatusCount()
-                powerProductionViewModel.getAggregatedPowerProduction()
-                if (!shouldStopLoop) {
-                    mHandler.postDelayed(this, 30000)
+        Surface(
+            modifier = modifier.padding(it),
+            color = LogoBlueBackground
+        ) {
+            LazyColumn(modifier.fillMaxSize()) {
+                item {
+                    MainViewCard(
+                        "Sumaryczna produkcja prądu",
+                        "${powerProductionLastMinute.aggregatedValue} kWh"
+                    )
+                }
+                itemsIndexed(items = powerStationsStates.keys.toList()) { _, item ->
+                    MainViewCard(
+                        "Liczba elektrowni ${stringResource(id = item.stateName)}",
+                        "${powerStationsStates[item]}"
+                    )
+                }
+                item {
+                    MainViewCard(
+                        "Nazwa użytkownika: ${
+                            getPreferredUsername(jwtToken)
+                        }",
+                        "Rola: ${
+                            getRolesFromJwtToken(jwtToken)
+                        }"
+                    )
                 }
             }
         }
+    }
+    RefreshViewData(navController, powerProductionViewModel, powerStationViewModel)
+}
+
+@Composable
+private fun getPreferredUsername(jwtToken: JWT?) =
+    jwtToken?.getClaim("preferred_username")?.asString()
 
 
-        LazyColumn(modifier.fillMaxSize()) {
-            item {
-               mHandler.post(runnable)
+private fun getRolesFromJwtToken(jwtToken: JWT?) =
+    (jwtToken?.getClaim("realm_access")
+        ?.asObject(Map::class.java)
+        ?.get("roles") as ArrayList<*>)
+        .map { it.toString() }
+        .filter { jwtRole ->
+            val role = Roles.entries.find {
+                it.name == jwtRole
             }
-            item {
-                Card(
-                    colors = CardDefaults.elevatedCardColors(containerColor = CardBackground),
-                    elevation = CardDefaults.outlinedCardElevation(3.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(IntrinsicSize.Min)
-                        .padding(vertical = 10.dp, horizontal = 8.dp),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(vertical = 10.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+            role != null
+        }.joinToString { it }
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LogoutTopBar(username: String?, tokenViewModel: TokenViewModel) {
+    TopAppBar(
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = TopBarBackground
+        ),
+        title = {
+            if (username != null) {
+                CardText(username)
+            }
+        },
+        actions = {
+            IconButton(onClick = {
+                tokenViewModel.clearTokens()
+            }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.icons8_power_off_96),
+                    contentDescription = "Wyloguj się"
+                )
+            }
+        })
+}
+
+@Composable
+private fun RefreshViewData(
+    navController: NavHostController,
+    powerProductionViewModel: PowerProductionViewModel,
+    powerStationViewModel: PowerStationViewModel
+) {
+    val localContext = LocalContext.current
+
+    var isLaunched by remember {
+        mutableStateOf(false)
+    }
+
+    LaunchedEffect(isLaunched) {
+        if (!isLaunched) {
+            val handlerThread = HandlerThread("Data-Update")
+            handlerThread.start()
+            val mHandler = Handler(handlerThread.looper)
+
+            val runnable: Runnable = object : Runnable {
+                override fun run() {
+                    if (navController.currentBackStackEntry?.destination?.route.equals(
+                            AppScreen.MainView.route
+                        )
                     ) {
-                        Text(text = "Sumaryczna produkcja prądu")
-                        Text(text = "${powerProductionLastMinute.aggregatedValue} kWh")
+                        Toast.makeText(
+                            localContext,
+                            "Odświeżono dane",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        powerProductionViewModel.getAggregatedPowerProduction()
+                        powerStationViewModel.getPowerStationsStatusCount()
+                        mHandler.postDelayed(this, 30000)
                     }
                 }
             }
-
-            itemsIndexed(items = powerStationsStates.keys.toList()) { _, item ->
-                Card(
-                    colors = CardDefaults.elevatedCardColors(containerColor = CardBackground),
-                    elevation = CardDefaults.outlinedCardElevation(3.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(IntrinsicSize.Min)
-                        .padding(vertical = 10.dp, horizontal = 8.dp),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(vertical = 10.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Text(text = "Liczba elektrowni o stanie: ${item.name}")
-                        Text(text = "${powerStationsStates[item]}")
-                    }
-                }
-            }
-
+            mHandler.post(runnable)
+            isLaunched = true
         }
     }
 }
 
-@Preview(showBackground = true)
+
 @Composable
-fun GreetingPreview() {
-    MobileapplicationTheme {
-        MainView(Modifier.fillMaxSize())
+fun MainViewCard(topText: String, bottomText: String) {
+    Card(
+        colors = CardDefaults.elevatedCardColors(containerColor = LogoBlue),
+        elevation = CardDefaults.outlinedCardElevation(3.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min)
+            .padding(vertical = 10.dp, horizontal = 8.dp),
+        shape = RoundedCornerShape(10.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            CardText(text = topText)
+            CardText(text = bottomText)
+        }
     }
+}
+
+@Composable
+fun CardText(text: String) {
+    Text(
+        text = text,
+        maxLines = 1,
+        color = Color.White,
+        fontWeight = FontWeight.Bold,
+        lineHeight = TextUnit(15f, TextUnitType.Sp),
+        fontSize = TextUnit(15f, TextUnitType.Sp)
+    )
+}
+
+@Preview
+@Composable
+fun MainViewCardPreview() {
+    MainViewCard("Sumaryczna produkcja prądu", "300000 kWh")
 }

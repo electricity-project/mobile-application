@@ -1,7 +1,7 @@
 package com.electricity.project.api.power.station.service
 
 import com.electricity.project.api.power.station.entity.PowerStationState
-import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.GET
 
 
@@ -12,5 +12,5 @@ interface PowerStationService {
     }
 
     @GET("$BASE_URL/count")
-    fun getPowerStationsStatusCount(): Call<Map<PowerStationState, Int>>
+    suspend fun getPowerStationsStatusCount(): Response<Map<PowerStationState, Int>>
 }

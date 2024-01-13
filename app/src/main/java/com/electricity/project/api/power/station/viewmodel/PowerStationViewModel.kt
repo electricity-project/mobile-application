@@ -1,36 +1,36 @@
 package com.electricity.project.api.power.station.viewmodel
 
 import android.util.Log
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.map
+import com.electricity.project.api.base.ApiResponse
+import com.electricity.project.api.base.BaseViewModel
+import com.electricity.project.api.base.CoroutinesErrorHandler
 import com.electricity.project.api.power.station.entity.PowerStationState
 import com.electricity.project.api.power.station.service.PowerStationService
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 
-class PowerStationViewModel(
+@HiltViewModel
+class PowerStationViewModel @Inject constructor(
     private val powerStationService: PowerStationService
-) : ViewModel() {
+) : BaseViewModel() {
 
-    private val _powerStationsCount = MutableStateFlow<Map<PowerStationState, Int>>(emptyMap())
-    val powerStationsCount: StateFlow<Map<PowerStationState, Int>> = _powerStationsCount
-
-    fun getPowerStationsStatusCount() {
-        viewModelScope.launch(context = Dispatchers.IO) {
-            try {
-                val response = powerStationService.getPowerStationsStatusCount().execute().body()
-                if (response != null) _powerStationsCount.value = response
-            } catch (e: Exception) {
-                Log.e(
-                    PowerStationViewModel::class.java.toString(),
-                    "getPowerStationsStatusCount: ",
-                    e
-                )
-            }
-
+    private val _powerStationsCount = MutableLiveData<ApiResponse<Map<PowerStationState, Int>>>()
+    val powerStationsCount: LiveData<Map<PowerStationState, Int>> = _powerStationsCount.map {
+        return@map when (it) {
+            is ApiResponse.Success -> it.data
+            else -> emptyMap<PowerStationState, Int>()
         }
     }
+
+    fun getPowerStationsStatusCount() = baseRequest(_powerStationsCount,
+        object : CoroutinesErrorHandler {
+            override fun onError(message: String) {
+                Log.w(PowerStationViewModel::class.java.toString(), message)
+            }
+        }) { powerStationService.getPowerStationsStatusCount() }
+
 }

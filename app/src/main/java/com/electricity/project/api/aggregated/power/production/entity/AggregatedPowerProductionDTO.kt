@@ -7,4 +7,6 @@ data class AggregatedPowerProductionDTO(
     @JsonProperty("aggregatedValue") val aggregatedValue: Long?,
     @JsonProperty("powerStations") val powerStations: Long?,
     @JsonProperty("timestamp") val timestamp: LocalDateTime
-)
+) {
+    constructor() : this(0, 0, LocalDateTime.now())
+}

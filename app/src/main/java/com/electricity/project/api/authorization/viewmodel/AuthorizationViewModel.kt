@@ -1,26 +1,33 @@
 package com.electricity.project.api.authorization.viewmodel
 
+import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import com.electricity.project.api.authorization.entity.LoginRequestDTO
 import com.electricity.project.api.authorization.entity.LoginResponseDTO
 import com.electricity.project.api.authorization.service.AuthorizationService
 import com.electricity.project.api.base.ApiResponse
 import com.electricity.project.api.base.BaseViewModel
 import com.electricity.project.api.base.CoroutinesErrorHandler
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 
-class AuthorizationViewModel(
+@HiltViewModel
+class AuthorizationViewModel @Inject constructor(
     private val authorizationService: AuthorizationService
 ) : BaseViewModel() {
 
     private val _authorizationData =
-        MutableStateFlow<ApiResponse<LoginResponseDTO>>(ApiResponse.Empty)
+        MutableLiveData<ApiResponse<LoginResponseDTO>>(ApiResponse.Empty)
 
-    val authorizationData: StateFlow<ApiResponse<LoginResponseDTO>> = _authorizationData
+    val authorizationData = _authorizationData
 
-    fun login(requestDTO: LoginRequestDTO, coroutinesErrorHandler: CoroutinesErrorHandler) =
-        baseRequest(_authorizationData, coroutinesErrorHandler) {
+    fun login(requestDTO: LoginRequestDTO) =
+        baseRequest(_authorizationData, object : CoroutinesErrorHandler {
+            override fun onError(message: String) {
+                Log.w("AuthorizationViewModel", "Error $message")
+            }
+        }) {
             authorizationService.login(requestDTO)
         }
 
