@@ -7,7 +7,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 
 object ApiConst {
-    private const val LOGIC_URL: String = "http://192.168.1.128:8084/api/"
+    private const val LOGIC_URL: String = "http://localhost:8084/api/"
 
     val retrofitBasicBuilder: Retrofit.Builder = Retrofit.Builder()
         .baseUrl(LOGIC_URL)
