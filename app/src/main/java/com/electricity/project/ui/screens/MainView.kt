@@ -3,13 +3,17 @@ package com.electricity.project.ui.screens
 import android.os.Handler
 import android.os.HandlerThread
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -48,6 +52,7 @@ import com.electricity.project.api.aggregated.power.production.entity.Aggregated
 import com.electricity.project.api.aggregated.power.production.viewmodel.PowerProductionViewModel
 import com.electricity.project.api.power.station.viewmodel.PowerStationViewModel
 import com.electricity.project.api.token.Roles
+import com.electricity.project.api.token.TokenManager
 import com.electricity.project.api.token.TokenViewModel
 import com.electricity.project.ui.theme.LogoBlue
 import com.electricity.project.ui.theme.LogoBlueBackground
@@ -105,7 +110,7 @@ fun MainView(
 
     Scaffold(
         topBar = {
-            LogoutTopBar(getPreferredUsername(jwtToken), tokenViewModel)
+            LogoutTopBar(tokenViewModel)
         }
     ) {
         Surface(
@@ -160,14 +165,25 @@ private fun getRolesFromJwtToken(jwtToken: JWT?) =
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LogoutTopBar(username: String?, tokenViewModel: TokenViewModel) {
+fun LogoutTopBar(tokenViewModel: TokenViewModel) {
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = TopBarBackground
         ),
         title = {
-            if (username != null) {
-                CardText(username)
+            Row (
+                modifier = Modifier,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    modifier = Modifier
+                        .padding(top = 5.dp, bottom = 5.dp)
+                        .height(40.dp),
+                    painter = painterResource(id = R.drawable.logo),
+                    contentDescription = "Logo aplikacji"
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                CardText("SZOZE")
             }
         },
         actions = {
@@ -222,4 +238,10 @@ fun CardText(text: String) {
 @Composable
 fun MainViewCardPreview() {
     MainViewCard("Sumaryczna produkcja prądu", "300000 kWh")
+}
+
+@Preview
+@Composable
+fun LogoutTopBarPreview() {
+    LogoutTopBar(TokenViewModel(TokenManager(LocalContext.current)))
 }
