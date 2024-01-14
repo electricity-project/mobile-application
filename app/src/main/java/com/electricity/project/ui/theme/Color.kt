@@ -12,3 +12,7 @@ val Pink40 = Color(0xFF7D5260)
 
 
 val CardBackground = Color(0xff52b0b0)
+
+val LogoBlue = Color(0xff1976d2)
+val LogoBlueBackground = Color(0xF1262D47)
+val TopBarBackground = Color(0xF1313F70)
