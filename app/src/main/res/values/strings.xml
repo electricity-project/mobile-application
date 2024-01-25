@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">mobile-application</string>
+    <string name="app_name">SZOZE</string>
     <string name="loginScreen_login">login</string>
     <string name="loginScreen_password">hasło</string>
     <string name="loginScreen_sign_in">Zaloguj się</string>
