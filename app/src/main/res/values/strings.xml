@@ -5,7 +5,7 @@
     <string name="loginScreen_sign_in">Zaloguj się</string>
     <string name="working_state">aktywnych</string>
     <string name="stopped_state">zatrzymanych</string>
-    <string name="damaged_state">uszkodzonych</string>
-    <string name="maintenance_state">w naprawie</string>
+    <string name="damaged_state">w naprawie</string>
+    <string name="maintenance_state">uszkodzonych</string>
     <string name="incorrect_login_data">Niepoprawne dane logowania</string>
 </resources>

@@ -8,10 +8,11 @@ import retrofit2.converter.jackson.JacksonConverterFactory
 
 object ApiConst {
     //Emulator address
-    private const val LOGIC_URL: String = "http://10.0.2.2:8084/api/"
+   // private const val LOGIC_URL: String = "http://10.0.2.2:8084/api/"
 
     // Production address
-//    private const val LOGIC_URL: String = "http://localhost:8084/api/"
+    private const val LOGIC_URL: String = "http://localhost:8084/api/"
+
 
     val retrofitBasicBuilder: Retrofit.Builder = Retrofit.Builder()
         .baseUrl(LOGIC_URL)
