@@ -120,7 +120,7 @@ fun MainView(
             LazyColumn(modifier.fillMaxSize()) {
                 item {
                     MainViewCard(
-                        "Sumaryczna produkcja prądu",
+                        "Sumaryczna produkcja energii elektrycznej",
                         "${powerProductionLastMinute.aggregatedValue} kWh"
                     )
                 }

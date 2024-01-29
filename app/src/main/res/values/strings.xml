@@ -8,4 +8,5 @@
     <string name="damaged_state">w naprawie</string>
     <string name="maintenance_state">uszkodzonych</string>
     <string name="incorrect_login_data">Niepoprawne dane logowania</string>
+    <string name="stopped_by_user">zatrzymanych ręcznie</string>
 </resources>

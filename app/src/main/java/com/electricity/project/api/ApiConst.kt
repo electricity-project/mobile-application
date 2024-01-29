@@ -13,7 +13,6 @@ object ApiConst {
     // Production address
     private const val LOGIC_URL: String = "http://localhost:8084/api/"
 
-
     val retrofitBasicBuilder: Retrofit.Builder = Retrofit.Builder()
         .baseUrl(LOGIC_URL)
         .addConverterFactory(
